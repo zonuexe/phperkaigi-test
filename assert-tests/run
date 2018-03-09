@@ -1,0 +1,18 @@
+#!/usr/bin/env php
+<?php
+
+require __DIR__ . '/../vendor/autoload.php';
+
+$testing = include __DIR__ . '/bootstrap.php';
+
+chdir(__DIR__);
+
+foreach (glob('*_test.php') as $file) {
+    try {
+        include $file;
+    } catch (\Throwable $e) {
+        dump($e);
+    }
+}
+
+$testing->finalize();

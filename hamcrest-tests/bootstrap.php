@@ -1,0 +1,3 @@
+<?php
+
+\Hamcrest\Util::registerGlobalFunctions();

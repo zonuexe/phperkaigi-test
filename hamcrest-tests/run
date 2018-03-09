@@ -1,0 +1,62 @@
+#!/usr/bin/env php
+<?php
+
+require __DIR__ . '/../vendor/autoload.php';
+require __DIR__ . '/bootstrap.php';
+
+chdir(__DIR__);
+
+foreach (glob('*_test.php') as $file) {
+    require_once $file;
+}
+
+$failures = [];
+$errors   = [];
+
+foreach (get_defined_functions(true)['user'] as $func) {
+    if (strpos($func, 'test_') === 0) {
+        $provider = get_provider($func) ?: function (){ yield []; };
+
+        foreach ($provider() as $args) {
+            try {
+                $func(...$args);
+                echo '.';
+            } catch (\Hamcrest\AssertionError $e) {
+                $failures[] = ['error' => $e, 'args' => $args];
+                echo 'F';
+            }catch (\Throwable $e) {
+                $errors[] = $e;
+                echo 'E';
+            }
+        }
+    }
+}
+
+echo PHP_EOL;
+
+if ($failures) {
+    echo "Failures:", PHP_EOL;
+
+    foreach ($failures as ['error' => $f, 'args' => $args]) {
+        echo PHP_EOL;
+        echo "FILE: {$f->getFile()} ({$f->getLine()})", PHP_EOL;
+        echo "ARGS: "; dump($args);
+        echo "DESC: {$f->getMessage()})", PHP_EOL;
+    }
+}
+
+if ($errors) {
+    echo "Errors:", PHP_EOL;
+    dump($errors);
+}
+
+function get_provider(string $func_name): ?string
+{
+    $ref = new \ReflectionFunction($func_name);
+
+    if (preg_match('/@dataProvider +(?<provider>\S+)/', $ref->getDocComment(), $m)) {
+        return trim($m['provider']);
+    }
+
+    return null;
+}

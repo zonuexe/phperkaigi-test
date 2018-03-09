@@ -1,0 +1,12 @@
+{
+    "require-dev": {
+        "phpunit/phpunit": "^7.0"
+    },
+    "autoload": {
+        "classmap": ["lib/"],
+        "files": ["src/fizzbuzz.php"]
+    },
+    "require": {
+        "hamcrest/hamcrest-php": "^2.0"
+    }
+}
